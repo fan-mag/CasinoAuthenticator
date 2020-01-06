@@ -54,5 +54,19 @@ object Auth {
             return Privilege(0, "Invalid apikey")
     }
 
+    fun deleteUserByApikey(apikey: String) {
+        val query = "delete from users where apikey = ?"
+        val preparedStatement = Database.conn.prepareStatement(query)
+        preparedStatement.setString(1, apikey)
+        preparedStatement.execute()
+    }
+
+    fun deleteUserByLogin(login: String) {
+        val query = "delete from users where login = ?"
+        val preparedStatement = Database.conn.prepareStatement(query)
+        preparedStatement.setString(1, login)
+        preparedStatement.execute()
+    }
+
 
 }

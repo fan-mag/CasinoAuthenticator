@@ -7,6 +7,7 @@ import CasinoLib.services.CasinoLibrary
 import CasinoLib.services.Logger
 import com.google.gson.Gson
 import helpers.Database
+import helpers.RequestProcess
 import helpers.UserProcess
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -31,7 +32,7 @@ open class WebServiceApplication {
     fun getUserKey(@RequestBody requestBody: String,
                    @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
         try {
-            if (!contentType.contains("application/json")) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+            if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
             val user = Gson().fromJson(requestBody, User::class.java)
             if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
             if (!UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} not found"), HttpStatus.NOT_FOUND)
@@ -51,7 +52,7 @@ open class WebServiceApplication {
     fun createUser(@RequestBody requestBody: String,
                    @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
         try {
-            if (!contentType.contains("application/json")) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+            if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
             val user = Gson().fromJson(requestBody, User::class.java)
             if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
             if (UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} already exists"), HttpStatus.UNPROCESSABLE_ENTITY)
@@ -78,6 +79,45 @@ open class WebServiceApplication {
             else
                 Logger.log(service = "Auth", message = "Exception without any message")
         }
+        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+    @DeleteMapping("/auth")
+    fun deleteUser(@RequestBody(required = false) requestBody: String?,
+                   @RequestHeader(name = "Content-Type", required = false) contentType: String?,
+                   @RequestHeader(name = "apikey", required = true) apikey: String): ResponseEntity<Any> {
+        try {
+            val privilege = UserProcess.getPrivilege(apikey)
+            when (privilege.level) {
+                0 -> return ResponseEntity(privilege, HttpStatus.NOT_FOUND)
+                7 -> {
+                    UserProcess.deleteUserByApikey(apikey)
+                    return ResponseEntity(Message("Your account has been deleted"), HttpStatus.ACCEPTED)
+                }
+                15 -> {
+                    if (contentType == null || (!contentType.contains("application/json"))) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+                    if (RequestProcess.isBodyNull(requestBody)) return ResponseEntity(Message("Missing request body for delete operation"), HttpStatus.BAD_REQUEST)
+                    val user = Gson().fromJson(requestBody, User::class.java)
+                    if (user.login != null) {
+                        UserProcess.deleteUserByLogin(user.login!!)
+                        return ResponseEntity(Message("Account with login ${user.login} has been deleted"), HttpStatus.ACCEPTED)
+                    }
+                    if (user.apikey != null) {
+                        UserProcess.deleteUserByApikey(user.apikey!!)
+                        return ResponseEntity(Message("Account with apikey ${user.apikey} has been deleted"), HttpStatus.ACCEPTED)
+                    }
+                    if (user.login == null && user.apikey == null)
+                        return ResponseEntity(Message("Login or apikey of deleting user must be specified"), HttpStatus.UNPROCESSABLE_ENTITY)
+                }
+            }
+        } catch (exception: Exception) {
+            if (exception.message != null)
+                Logger.log(service = "Auth", message = exception.message!!)
+            else
+                Logger.log(service = "Auth", message = "Exception without any message")
+        }
+
+
         return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }

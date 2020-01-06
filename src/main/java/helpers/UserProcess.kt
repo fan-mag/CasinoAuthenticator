@@ -52,4 +52,16 @@ object UserProcess {
         Logger.log(service = "Auth", message = "Privilege for apikey $apikey: ${privilege.level} - ${privilege.description}")
         return privilege
     }
+
+    fun deleteUserByApikey(apikey: String) {
+        Logger.log(service = "Auth", message = "Deleting user with apikey $apikey")
+        Auth.deleteUserByApikey(apikey)
+        Logger.log(service = "Auth", message = "User with apikey $apikey has been deleted")
+    }
+
+    fun deleteUserByLogin(login: String) {
+        Logger.log(service = "Auth", message = "Deletin user with login $login")
+        Auth.deleteUserByLogin(login)
+        Logger.log(service = "Auth", message = "User with login $login has been deleted")
+    }
 }
