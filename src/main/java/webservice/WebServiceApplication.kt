@@ -1,13 +1,13 @@
 package webservice
 
+import CasinoLib.model.Apikey
+import CasinoLib.model.Message
 import CasinoLib.model.User
 import CasinoLib.services.CasinoLibrary
 import CasinoLib.services.Logger
 import com.google.gson.Gson
 import helpers.Database
 import helpers.UserProcess
-import model.Apikey
-import model.Message
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.http.HttpStatus
