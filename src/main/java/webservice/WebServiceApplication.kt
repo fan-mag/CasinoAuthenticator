@@ -2,10 +2,8 @@ package webservice
 
 import CasinoLib.model.Apikey
 import CasinoLib.model.Message
-import CasinoLib.model.User
 import CasinoLib.services.CasinoLibrary
 import CasinoLib.services.Logger
-import com.google.gson.Gson
 import helpers.Database
 import helpers.RequestProcess
 import helpers.UserProcess
@@ -33,7 +31,7 @@ open class WebServiceApplication {
                    @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
         try {
             if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
-            val user = Gson().fromJson(requestBody, User::class.java)
+            val user = RequestProcess.bodyToUser(requestBody)
             if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
             if (!UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} not found"), HttpStatus.NOT_FOUND)
             if (!UserProcess.isPasswordCorrect(user)) return ResponseEntity(Message("Incorrect password for user ${user.login}"), HttpStatus.UNAUTHORIZED)
@@ -53,7 +51,7 @@ open class WebServiceApplication {
                    @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
         try {
             if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
-            val user = Gson().fromJson(requestBody, User::class.java)
+            val user = RequestProcess.bodyToUser(requestBody)
             if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
             if (UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} already exists"), HttpStatus.UNPROCESSABLE_ENTITY)
             return ResponseEntity(Apikey(UserProcess.createUser(user)), HttpStatus.CREATED)
@@ -95,9 +93,9 @@ open class WebServiceApplication {
                     return ResponseEntity(Message("Your account has been deleted"), HttpStatus.ACCEPTED)
                 }
                 15 -> {
-                    if (contentType == null || (!contentType.contains("application/json"))) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+                    if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
                     if (RequestProcess.isBodyNull(requestBody)) return ResponseEntity(Message("Missing request body for delete operation"), HttpStatus.BAD_REQUEST)
-                    val user = Gson().fromJson(requestBody, User::class.java)
+                    val user = RequestProcess.bodyToUser(requestBody)
                     if (user.login != null) {
                         UserProcess.deleteUserByLogin(user.login!!)
                         return ResponseEntity(Message("Account with login ${user.login} has been deleted"), HttpStatus.ACCEPTED)
