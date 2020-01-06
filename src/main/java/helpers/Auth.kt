@@ -1,5 +1,7 @@
 package helpers
 
+import model.Privilege
+
 object Auth {
     fun checkLogin(login: String?): Int {
         val query = "select count(*) from users where login = ?"
@@ -39,6 +41,17 @@ object Auth {
         val resultSet = preparedStatement.executeQuery()
         resultSet.next()
         return resultSet.getString("apikey")
+    }
+
+    fun getPrivilege(apikey: String): Privilege {
+        val query = "select privilege, description from users u join privileges p on u.privilege = p.id where apikey = ?"
+        val preparedStatement = Database.conn.prepareStatement(query)
+        preparedStatement.setString(1, apikey)
+        val resultSet = preparedStatement.executeQuery()
+        if (resultSet.next())
+            return Privilege(resultSet.getInt("privilege"), resultSet.getString("description"))
+        else
+            return Privilege(0, "Invalid apikey")
     }
 
 

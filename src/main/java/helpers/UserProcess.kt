@@ -1,5 +1,6 @@
 package helpers
 
+import model.Privilege
 import model.User
 import services.Logger
 
@@ -43,5 +44,12 @@ object UserProcess {
         val apikey = Auth.createUser(user.login, user.password)
         Logger.log(service = "Auth", message = "Created user with login ${user.login} and apikey is $apikey")
         return apikey
+    }
+
+    fun getPrivilege(apikey: String): Privilege {
+        Logger.log(service = "Auth", message = "Getting privilege level for apikey $apikey")
+        val privilege = Auth.getPrivilege(apikey)
+        Logger.log(service = "Auth", message = "Privilege for apikey $apikey: ${privilege.level} - ${privilege.description}")
+        return privilege
     }
 }

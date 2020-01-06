@@ -69,7 +69,9 @@ open class WebServiceApplication {
     fun getUserPrivilege(
             @RequestHeader(name = "apikey", required = true) apikey: String): ResponseEntity<Any> {
         try {
-
+            val privilege = UserProcess.getPrivilege(apikey)
+            if (privilege.level == 0) return ResponseEntity(privilege, HttpStatus.NOT_FOUND)
+            return ResponseEntity(privilege, HttpStatus.OK)
         } catch (exception: Exception) {
             if (exception.message != null)
                 Logger.log(service = "Auth", message = exception.message!!)

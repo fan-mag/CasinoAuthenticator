@@ -1,4 +1,3 @@
 package model
 
-class Privilege {
-}
+class Privilege (val level: Int, val description: String)
