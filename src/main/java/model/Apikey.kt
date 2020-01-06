@@ -1,3 +1,4 @@
 package model
 
-class Apikey(val apikey: String)
+@Deprecated(message = "Deprecated. Use model of CasinoLib")
+class Apikey (val apikey: String)

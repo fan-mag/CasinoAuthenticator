@@ -1,18 +1,18 @@
 package webservice
 
+import CasinoLib.model.User
+import CasinoLib.services.CasinoLibrary
+import CasinoLib.services.Logger
 import com.google.gson.Gson
 import helpers.Database
 import helpers.UserProcess
 import model.Apikey
 import model.Message
-import model.User
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import services.CasinoLibrary
-import services.Logger
 
 @SpringBootApplication
 @RestController

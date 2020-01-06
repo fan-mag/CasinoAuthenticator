@@ -1,6 +1,6 @@
 package helpers
 
-import model.Privilege
+import CasinoLib.model.Privilege
 
 object Auth {
     fun checkLogin(login: String?): Int {

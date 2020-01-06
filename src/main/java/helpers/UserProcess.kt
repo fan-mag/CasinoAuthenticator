@@ -1,8 +1,8 @@
 package helpers
 
-import model.Privilege
-import model.User
-import services.Logger
+import CasinoLib.model.Privilege
+import CasinoLib.model.User
+import CasinoLib.services.Logger
 
 object UserProcess {
 
