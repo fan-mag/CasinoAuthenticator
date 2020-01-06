@@ -76,6 +76,7 @@ open class WebServiceApplication {
                    @RequestHeader(name = "Content-Type", required = false) contentType: String?,
                    @RequestHeader(name = "apikey", required = true) apikey: String): ResponseEntity<Any> {
         try {
+            if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
             val privilege = UserProcess.getPrivilege(apikey)
             when (privilege.level) {
                 0 -> return ResponseEntity(privilege, HttpStatus.NOT_FOUND)
