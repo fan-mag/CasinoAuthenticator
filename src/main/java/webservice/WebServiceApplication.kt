@@ -1,9 +1,9 @@
 package webservice
 
+import CasinoLib.helpers.Exceptions
 import CasinoLib.model.Apikey
 import CasinoLib.model.Message
 import CasinoLib.services.CasinoLibrary
-import CasinoLib.services.Logger
 import helpers.Database
 import helpers.RequestProcess
 import helpers.UserProcess
@@ -37,10 +37,7 @@ open class WebServiceApplication {
             if (!UserProcess.isPasswordCorrect(user)) return ResponseEntity(Message("Incorrect password for user ${user.login}"), HttpStatus.UNAUTHORIZED)
             return ResponseEntity(Apikey(UserProcess.getApikey(user)), HttpStatus.OK)
         } catch (exception: Exception) {
-            if (exception.message != null)
-                Logger.log(service = "Auth", message = exception.message!!)
-            else
-                Logger.log(service = "Auth", message = "Exception without any message")
+            Exceptions.handle(exception, "Auth")
         }
         return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -56,10 +53,7 @@ open class WebServiceApplication {
             if (UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} already exists"), HttpStatus.UNPROCESSABLE_ENTITY)
             return ResponseEntity(Apikey(UserProcess.createUser(user)), HttpStatus.CREATED)
         } catch (exception: Exception) {
-            if (exception.message != null)
-                Logger.log(service = "Auth", message = exception.message!!)
-            else
-                Logger.log(service = "Auth", message = "Exception without any message")
+            Exceptions.handle(exception, "Auth")
         }
         return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -72,10 +66,7 @@ open class WebServiceApplication {
             if (privilege.level == 0) return ResponseEntity(privilege, HttpStatus.NOT_FOUND)
             return ResponseEntity(privilege, HttpStatus.OK)
         } catch (exception: Exception) {
-            if (exception.message != null)
-                Logger.log(service = "Auth", message = exception.message!!)
-            else
-                Logger.log(service = "Auth", message = "Exception without any message")
+            Exceptions.handle(exception, "Auth")
         }
         return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -109,10 +100,7 @@ open class WebServiceApplication {
                 }
             }
         } catch (exception: Exception) {
-            if (exception.message != null)
-                Logger.log(service = "Auth", message = exception.message!!)
-            else
-                Logger.log(service = "Auth", message = "Exception without any message")
+            Exceptions.handle(exception, "Auth")
         }
 
 
