@@ -10,9 +10,7 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import services.CasinoLibrary
 import services.Logger
 
@@ -30,8 +28,10 @@ open class WebServiceApplication {
     }
 
     @PutMapping("/auth")
-    fun getUserKey(@RequestBody requestBody: String): ResponseEntity<Any> {
+    fun getUserKey(@RequestBody requestBody: String,
+                   @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
         try {
+            if (contentType != "application/json") return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
             val user = Gson().fromJson(requestBody, User::class.java)
             if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
             if (!UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} not found"), HttpStatus.NOT_FOUND)
@@ -43,7 +43,39 @@ open class WebServiceApplication {
             else
                 Logger.log(service = "Auth", message = "Exception without any message")
         }
-        return ResponseEntity(null, HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
+
+    @PostMapping("/auth")
+    fun createUser(@RequestBody requestBody: String,
+                   @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
+        try {
+            if (contentType != "application/json") return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+            val user = Gson().fromJson(requestBody, User::class.java)
+            if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
+            if (UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} already exists"), HttpStatus.UNPROCESSABLE_ENTITY)
+            return ResponseEntity(Apikey(UserProcess.createUser(user)), HttpStatus.CREATED)
+        } catch (exception: Exception) {
+            if (exception.message != null)
+                Logger.log(service = "Auth", message = exception.message!!)
+            else
+                Logger.log(service = "Auth", message = "Exception without any message")
+        }
+        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+    @GetMapping("/auth")
+    fun getUserPrivilege(
+            @RequestHeader(name = "apikey", required = true) apikey: String): ResponseEntity<Any> {
+        try {
+
+        } catch (exception: Exception) {
+            if (exception.message != null)
+                Logger.log(service = "Auth", message = exception.message!!)
+            else
+                Logger.log(service = "Auth", message = "Exception without any message")
+        }
+        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+    }
 }

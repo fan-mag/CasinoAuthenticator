@@ -28,8 +28,17 @@ object Auth {
         preparedStatement.setString(1, login)
         val resultSet = preparedStatement.executeQuery()
         resultSet.next()
-        val apikey = resultSet.getString("apikey")
-        return apikey
+        return resultSet.getString("apikey")
+    }
+
+    fun createUser(login: String?, password: String?): String {
+        val query = "insert into users (login, password) values (?, ?) returning apikey"
+        val preparedStatement = Database.conn.prepareStatement(query)
+        preparedStatement.setString(1, login)
+        preparedStatement.setString(2, password)
+        val resultSet = preparedStatement.executeQuery()
+        resultSet.next()
+        return resultSet.getString("apikey")
     }
 
 

@@ -37,4 +37,11 @@ object UserProcess {
         Logger.log(service = "Auth", message = "Retrieved apikey $apikey")
         return apikey
     }
+
+    fun createUser(user: User): String {
+        Logger.log(service = "Auth", message = "Creating user with login ${user.login} and password ${user.password}")
+        val apikey = Auth.createUser(user.login, user.password)
+        Logger.log(service = "Auth", message = "Created user with login ${user.login} and apikey is $apikey")
+        return apikey
+    }
 }
