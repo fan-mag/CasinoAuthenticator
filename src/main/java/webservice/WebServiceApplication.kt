@@ -31,7 +31,7 @@ open class WebServiceApplication {
     fun getUserKey(@RequestBody requestBody: String,
                    @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
         try {
-            if (contentType != "application/json") return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+            if (!contentType.contains("application/json")) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
             val user = Gson().fromJson(requestBody, User::class.java)
             if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
             if (!UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} not found"), HttpStatus.NOT_FOUND)
@@ -51,7 +51,7 @@ open class WebServiceApplication {
     fun createUser(@RequestBody requestBody: String,
                    @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
         try {
-            if (contentType != "application/json") return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+            if (!contentType.contains("application/json")) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
             val user = Gson().fromJson(requestBody, User::class.java)
             if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
             if (UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} already exists"), HttpStatus.UNPROCESSABLE_ENTITY)
