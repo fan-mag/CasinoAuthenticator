@@ -95,5 +95,15 @@ object Auth {
         Cache.delete(CacheType.APIKEY_PRIVILEGE, apikey)
     }
 
-
+    @Throws(Exception::class)
+    fun getLoginByApikey(apikey: String): String {
+        val query = "select login from users where apikey = ?"
+        val preparedStatement = Database.conn.prepareStatement(query)
+        preparedStatement.setString(1, apikey)
+        val resultSet = preparedStatement.executeQuery()
+        resultSet.next()
+        val login = resultSet.getString("login")
+        Cache.put(CacheType.LOGIN_APIKEY, login, apikey)
+        return login
+    }
 }

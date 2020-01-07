@@ -3,7 +3,9 @@ package webservice
 import CasinoLib.helpers.Exceptions
 import CasinoLib.model.Apikey
 import CasinoLib.model.Message
+import CasinoLib.model.User
 import CasinoLib.services.CasinoLibrary
+import helpers.Auth
 import helpers.Database
 import helpers.RequestProcess
 import helpers.UserProcess
@@ -36,6 +38,17 @@ open class WebServiceApplication {
             if (!UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} not found"), HttpStatus.NOT_FOUND)
             if (!UserProcess.isPasswordCorrect(user)) return ResponseEntity(Message("Incorrect password for user ${user.login}"), HttpStatus.UNAUTHORIZED)
             return ResponseEntity(Apikey(UserProcess.getApikey(user)), HttpStatus.OK)
+        } catch (exception: Exception) {
+            Exceptions.handle(exception, "Auth")
+        }
+        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+    @PatchMapping("/auth")
+    fun getLoginByApikey(@RequestHeader(name = "apikey", required = true) apikey: String): ResponseEntity<Any> {
+        try {
+            val login = Auth.getLoginByApikey(apikey)
+            return ResponseEntity(User(login = login), HttpStatus.OK)
         } catch (exception: Exception) {
             Exceptions.handle(exception, "Auth")
         }
