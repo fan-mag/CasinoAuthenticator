@@ -1,5 +1,6 @@
 package helpers
 
+import CasinoLib.exceptions.UserNotFoundException
 import CasinoLib.model.Privilege
 
 object Auth {
@@ -101,9 +102,11 @@ object Auth {
         val preparedStatement = Database.conn.prepareStatement(query)
         preparedStatement.setString(1, apikey)
         val resultSet = preparedStatement.executeQuery()
-        resultSet.next()
-        val login = resultSet.getString("login")
-        Cache.put(CacheType.LOGIN_APIKEY, login, apikey)
-        return login
+        if (resultSet.next()) {
+            val login = resultSet.getString("login")
+            Cache.put(CacheType.LOGIN_APIKEY, login, apikey)
+            return login
+        }
+        throw UserNotFoundException()
     }
 }

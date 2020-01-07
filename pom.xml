@@ -22,7 +22,7 @@
         <dependency>
             <groupId>CasinoLib</groupId>
             <artifactId>CasinoLib</artifactId>
-            <version>1.1.2a</version>
+            <version>${env.CasinoLibVersion}</version>
         </dependency>
 
         <dependency>

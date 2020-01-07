@@ -1,5 +1,6 @@
 package webservice
 
+import CasinoLib.exceptions.UserNotFoundException
 import CasinoLib.helpers.Exceptions
 import CasinoLib.model.Apikey
 import CasinoLib.model.Message
@@ -50,7 +51,10 @@ open class WebServiceApplication {
             val login = Auth.getLoginByApikey(apikey)
             return ResponseEntity(User(login = login), HttpStatus.OK)
         } catch (exception: Exception) {
-            Exceptions.handle(exception, "Auth")
+            when (exception) {
+                is UserNotFoundException -> return ResponseEntity(Message("Wrong apikey provided"), HttpStatus.NOT_FOUND)
+               else -> Exceptions.handle(exception, "Auth")
+            }
         }
         return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
     }
