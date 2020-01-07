@@ -31,7 +31,7 @@ object UserProcess {
     fun isPasswordCorrect(user: User): Boolean {
         Logger.log(service = "Auth", message = "Checking if password ${user.password} is correct on login ${user.login}")
         val isPasswordCorrect = Auth.checkLoginAndPassword(user.login, user.password)
-        Logger.log (service = "Auth", message = "Is password correct: $isPasswordCorrect")
+        Logger.log(service = "Auth", message = "Is password correct: $isPasswordCorrect")
         return isPasswordCorrect
     }
 

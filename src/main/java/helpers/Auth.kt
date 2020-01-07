@@ -29,12 +29,16 @@ object Auth {
 
     @Throws(Exception::class)
     fun getApikey(login: String?): String {
+        val cached = Cache.get(CacheType.LOGIN_APIKEY, login!!)
+        if (cached != null) return cached.toString()
         val query = "select apikey from users where login = ?"
         val preparedStatement = Database.conn.prepareStatement(query)
         preparedStatement.setString(1, login)
         val resultSet = preparedStatement.executeQuery()
         resultSet.next()
-        return resultSet.getString("apikey")
+        val apikey = resultSet.getString("apikey")
+        Cache.put(CacheType.LOGIN_APIKEY, login, apikey)
+        return apikey
     }
 
     @Throws(Exception::class)
