@@ -1,9 +1,10 @@
 package helpers
 
+import CasinoLib.model.Privilege
 import java.util.*
 
 object Cache {
-    private val APIKEY_PRIVILEGE: MutableMap<String, Int> = TreeMap()
+    private val APIKEY_PRIVILEGE: MutableMap<String, Privilege> = TreeMap()
     private val LOGIN_APIKEY: MutableMap<String, String> = TreeMap()
 
     fun get(type: CacheType, key: Any): Any? {
@@ -24,7 +25,7 @@ object Cache {
     fun put(type: CacheType, key: Any, value: Any) {
         when (type) {
             CacheType.LOGIN_APIKEY -> LOGIN_APIKEY[key.toString()] = value.toString()
-            CacheType.APIKEY_PRIVILEGE -> APIKEY_PRIVILEGE[key.toString()] = value.toString().toInt()
+            CacheType.APIKEY_PRIVILEGE -> APIKEY_PRIVILEGE[key.toString()] = value as Privilege
         }
     }
 

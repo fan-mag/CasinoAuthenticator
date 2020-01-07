@@ -54,30 +54,45 @@ object Auth {
 
     @Throws(Exception::class)
     fun getPrivilege(apikey: String): Privilege {
+        val cached = Cache.get(CacheType.APIKEY_PRIVILEGE, apikey)
+        if (cached != null) return cached as Privilege
         val query = "select privilege, description from users u join privileges p on u.privilege = p.id where apikey = ?"
         val preparedStatement = Database.conn.prepareStatement(query)
         preparedStatement.setString(1, apikey)
         val resultSet = preparedStatement.executeQuery()
-        if (resultSet.next())
-            return Privilege(resultSet.getInt("privilege"), resultSet.getString("description"))
-        else
-            return Privilege(0, "Invalid apikey")
+        if (resultSet.next()) {
+            val privilege = Privilege(resultSet.getInt("privilege"), resultSet.getString("description"))
+            Cache.put(CacheType.APIKEY_PRIVILEGE, apikey, privilege)
+            return privilege
+        } else {
+            val privilege = Privilege(0, "Invalid apikey")
+            Cache.put(CacheType.APIKEY_PRIVILEGE, apikey, privilege)
+            return privilege
+        }
     }
 
     @Throws(Exception::class)
     fun deleteUserByApikey(apikey: String) {
-        val query = "delete from users where apikey = ?"
+        val query = "delete from users where apikey = ? returning login"
         val preparedStatement = Database.conn.prepareStatement(query)
         preparedStatement.setString(1, apikey)
-        preparedStatement.execute()
+        val resultSet = preparedStatement.executeQuery()
+        resultSet.next()
+        val login = resultSet.getString("login")
+        Cache.delete(CacheType.LOGIN_APIKEY, login)
+        Cache.delete(CacheType.APIKEY_PRIVILEGE, apikey)
     }
 
     @Throws(Exception::class)
     fun deleteUserByLogin(login: String) {
-        val query = "delete from users where login = ?"
+        val query = "delete from users where login = ? returning apikey"
         val preparedStatement = Database.conn.prepareStatement(query)
         preparedStatement.setString(1, login)
-        preparedStatement.execute()
+        val resultSet = preparedStatement.executeQuery()
+        resultSet.next()
+        val apikey = resultSet.getString("apikey")
+        Cache.delete(CacheType.LOGIN_APIKEY, login)
+        Cache.delete(CacheType.APIKEY_PRIVILEGE, apikey)
     }
 
 
