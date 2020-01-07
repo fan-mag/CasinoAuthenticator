@@ -55,7 +55,6 @@ open class WebServiceApplication {
         return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
-
     @PostMapping("/auth")
     fun createUser(@RequestBody requestBody: String,
                    @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
