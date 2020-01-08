@@ -14,7 +14,9 @@ import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.scheduling.annotation.Async
 import org.springframework.web.bind.annotation.*
+import java.util.concurrent.Callable
 
 @SpringBootApplication
 @RestController
@@ -29,98 +31,100 @@ open class WebServiceApplication {
         }
     }
 
+    @Async
     @PutMapping("/auth")
-    fun getUserKey(@RequestBody requestBody: String,
-                   @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
+    open fun getUserKey(@RequestBody requestBody: String,
+                        @RequestHeader(name = "Content-Type", required = true) contentType: String): Callable<ResponseEntity<*>> {
         try {
-            if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+            if (!RequestProcess.validateContentType(contentType)) return Callable { ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST) }
             val user = RequestProcess.bodyToUser(requestBody)
-            if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
-            if (!UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} not found"), HttpStatus.NOT_FOUND)
-            if (!UserProcess.isPasswordCorrect(user)) return ResponseEntity(Message("Incorrect password for user ${user.login}"), HttpStatus.UNAUTHORIZED)
-            return ResponseEntity(Apikey(UserProcess.getApikey(user)), HttpStatus.OK)
+            if (!UserProcess.validatePutBody(user)) return Callable { ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST) }
+            if (!UserProcess.isUserExists(user)) return Callable { ResponseEntity(Message("User with login ${user.login} not found"), HttpStatus.NOT_FOUND) }
+            if (!UserProcess.isPasswordCorrect(user)) return Callable { ResponseEntity(Message("Incorrect password for user ${user.login}"), HttpStatus.UNAUTHORIZED) }
+            return Callable { ResponseEntity(Apikey(UserProcess.getApikey(user)), HttpStatus.OK) }
         } catch (exception: Exception) {
             Exceptions.handle(exception, "Auth")
         }
-        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+        return Callable { ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR) }
     }
 
+    @Async
     @PatchMapping("/auth")
-    fun getLoginByApikey(@RequestHeader(name = "apikey", required = true) apikey: String): ResponseEntity<Any> {
+    open fun getLoginByApikey(@RequestHeader(name = "apikey", required = true) apikey: String): Callable<ResponseEntity<*>> {
         try {
             val login = Auth.getLoginByApikey(apikey)
-            return ResponseEntity(User(login = login), HttpStatus.OK)
+            return Callable { ResponseEntity(User(login = login), HttpStatus.OK) }
         } catch (exception: Exception) {
             when (exception) {
-                is UserNotFoundException -> return ResponseEntity(Message("Wrong apikey provided"), HttpStatus.NOT_FOUND)
-               else -> Exceptions.handle(exception, "Auth")
+                is UserNotFoundException -> return Callable { ResponseEntity(Message("Wrong apikey provided"), HttpStatus.NOT_FOUND) }
+                else -> Exceptions.handle(exception, "Auth")
             }
         }
-        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+        return Callable { ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR) }
     }
 
+    @Async
     @PostMapping("/auth")
-    fun createUser(@RequestBody requestBody: String,
-                   @RequestHeader(name = "Content-Type", required = true) contentType: String): ResponseEntity<Any> {
+    open fun createUser(@RequestBody requestBody: String,
+                   @RequestHeader(name = "Content-Type", required = true) contentType: String): Callable<ResponseEntity<*>> {
         try {
-            if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+            if (!RequestProcess.validateContentType(contentType)) return Callable { ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST) }
             val user = RequestProcess.bodyToUser(requestBody)
-            if (!UserProcess.validatePutBody(user)) return ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST)
-            if (UserProcess.isUserExists(user)) return ResponseEntity(Message("User with login ${user.login} already exists"), HttpStatus.UNPROCESSABLE_ENTITY)
-            return ResponseEntity(Apikey(UserProcess.createUser(user)), HttpStatus.CREATED)
+            if (!UserProcess.validatePutBody(user)) return Callable { ResponseEntity(Message("Bad Request"), HttpStatus.BAD_REQUEST) }
+            if (UserProcess.isUserExists(user)) return Callable { ResponseEntity(Message("User with login ${user.login} already exists"), HttpStatus.UNPROCESSABLE_ENTITY) }
+            return Callable { ResponseEntity(Apikey(UserProcess.createUser(user)), HttpStatus.CREATED) }
         } catch (exception: Exception) {
             Exceptions.handle(exception, "Auth")
         }
-        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+        return Callable { ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR) }
     }
-
+    @Async
     @GetMapping("/auth")
-    fun getUserPrivilege(
-            @RequestHeader(name = "apikey", required = true) apikey: String): ResponseEntity<Any> {
+    open fun getUserPrivilege(
+            @RequestHeader(name = "apikey", required = true) apikey: String): Callable<ResponseEntity<*>> {
         try {
             val privilege = UserProcess.getPrivilege(apikey)
-            if (privilege.level == 0) return ResponseEntity(privilege, HttpStatus.NOT_FOUND)
-            return ResponseEntity(privilege, HttpStatus.OK)
+            if (privilege.level == 0) return Callable { ResponseEntity(privilege, HttpStatus.NOT_FOUND) }
+            return Callable { ResponseEntity(privilege, HttpStatus.OK) }
         } catch (exception: Exception) {
             Exceptions.handle(exception, "Auth")
         }
-        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+        return Callable { ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR) }
     }
 
+    @Async
     @DeleteMapping("/auth")
-    fun deleteUser(@RequestBody(required = false) requestBody: String?,
+    open fun deleteUser(@RequestBody(required = false) requestBody: String?,
                    @RequestHeader(name = "Content-Type", required = false) contentType: String?,
-                   @RequestHeader(name = "apikey", required = true) apikey: String): ResponseEntity<Any> {
+                   @RequestHeader(name = "apikey", required = true) apikey: String): Callable<ResponseEntity<*>> {
         try {
-            if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
+            if (!RequestProcess.validateContentType(contentType)) return Callable { ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST) }
             val privilege = UserProcess.getPrivilege(apikey)
             when (privilege.level) {
-                0 -> return ResponseEntity(privilege, HttpStatus.NOT_FOUND)
+                0 -> return Callable { ResponseEntity(privilege, HttpStatus.NOT_FOUND) }
                 7 -> {
                     UserProcess.deleteUserByApikey(apikey)
-                    return ResponseEntity(Message("Your account has been deleted"), HttpStatus.ACCEPTED)
+                    return Callable { ResponseEntity(Message("Your account has been deleted"), HttpStatus.ACCEPTED) }
                 }
                 15 -> {
-                    if (!RequestProcess.validateContentType(contentType)) return ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST)
-                    if (RequestProcess.isBodyNull(requestBody)) return ResponseEntity(Message("Missing request body for delete operation"), HttpStatus.BAD_REQUEST)
+                    if (!RequestProcess.validateContentType(contentType)) return Callable { ResponseEntity(Message("Wrong Content-Type header"), HttpStatus.BAD_REQUEST) }
+                    if (RequestProcess.isBodyNull(requestBody)) return Callable { ResponseEntity(Message("Missing request body for delete operation"), HttpStatus.BAD_REQUEST) }
                     val user = RequestProcess.bodyToUser(requestBody)
                     if (user.login != null) {
                         UserProcess.deleteUserByLogin(user.login!!)
-                        return ResponseEntity(Message("Account with login ${user.login} has been deleted"), HttpStatus.ACCEPTED)
+                        return Callable { ResponseEntity(Message("Account with login ${user.login} has been deleted"), HttpStatus.ACCEPTED) }
                     }
                     if (user.apikey != null) {
                         UserProcess.deleteUserByApikey(user.apikey!!)
-                        return ResponseEntity(Message("Account with apikey ${user.apikey} has been deleted"), HttpStatus.ACCEPTED)
+                        return Callable { ResponseEntity(Message("Account with apikey ${user.apikey} has been deleted"), HttpStatus.ACCEPTED) }
                     }
                     if (user.login == null && user.apikey == null)
-                        return ResponseEntity(Message("Login or apikey of deleting user must be specified"), HttpStatus.UNPROCESSABLE_ENTITY)
+                        return Callable { ResponseEntity(Message("Login or apikey of deleting user must be specified"), HttpStatus.UNPROCESSABLE_ENTITY) }
                 }
             }
         } catch (exception: Exception) {
             Exceptions.handle(exception, "Auth")
         }
-
-
-        return ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR)
+        return Callable { ResponseEntity("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR) }
     }
 }
